@@ -68,3 +68,42 @@ def parse_data_cfg(path):
         options[key.strip()] = val.strip()
 
     return options
+
+
+def parse_args_cfg(path, return_dict=True, arg_s= None):
+    # Parses the data configuration file
+    if not os.path.exists(path):  # add data/ prefix if omitted
+        if os.path.exists('data' + os.sep + path):
+            path = 'data' + os.sep + path
+        else:
+            path = 'data' + os.sep + path
+            import time
+            file_args = open(path, 'w')
+            file_args.write('# Create Time: {}\n\n'.format(time.strftime("%Y-%m-%d %H:%M:%S", time.localtime())))
+            arg_s_actions = arg_s._actions
+            for arg_s_action in arg_s_actions[1:]:
+                writer_line = "{} = {}".format(arg_s_action.dest, arg_s_action.default)
+                if arg_s_action.help:
+                    writer_line = writer_line + " # {}\n".format(arg_s_action.help)
+                else:
+                    writer_line = writer_line + "\n"
+                file_args.write(writer_line)
+            file_args.close()
+
+    with open(path, 'r') as f:
+        lines = f.readlines()
+
+    options = []
+    for line in lines:
+        line = line.strip()
+        if line == '' or line.startswith('#'):
+            continue
+        # key, val = line.split('=')
+        # val = val.split('#')[0]
+        content = line.split('#')[0]
+        if "=" in content:
+            key, val = content.split('=')
+            options.extend(["--" + key.strip(), val.strip()])
+        else:
+            options.extend(["--"+content.strip()])
+    return options

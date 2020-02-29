@@ -70,7 +70,7 @@ def test(cfg,
     p, r, f1, mp, mr, map, mf1 = 0., 0., 0., 0., 0., 0., 0.
     loss = torch.zeros(3)
     jdict, stats, ap, ap_class = [], [], [], []
-    for batch_i, (imgs, targets, paths, shapes) in enumerate(tqdm(dataloader, desc=s)):
+    for batch_i, (imgs, targets, paths, shapes) in enumerate(tqdm(dataloader, desc=s, ncols=10)):
         imgs = imgs.to(device).float() / 255.0  # uint8 to float32, 0 - 255 to 0.0 - 1.0
         targets = targets.to(device)
         _, _, height, width = imgs.shape  # batch size, channels, height, width
@@ -91,6 +91,10 @@ def test(cfg,
 
             # Run NMS
             output = non_max_suppression(inf_out, conf_thres=conf_thres, iou_thres=iou_thres)
+
+        # Plot pred images with bounding boxes
+        f = 'test_result%g.png' % batch_i  # filename
+        plot_pred(imgs=imgs, targets=output, paths=paths, fname=f)
 
         # Statistics per image
         for si, pred in enumerate(output):
@@ -219,7 +223,13 @@ if __name__ == '__main__':
     parser.add_argument('--task', default='test', help="'test', 'study', 'benchmark'")
     parser.add_argument('--device', default='', help='device id (i.e. 0 or 0,1) or cpu')
     parser.add_argument('--single-cls', action='store_true', help='train as single-class dataset')
-    opt = parser.parse_args()
+    # opt = parser.parse_args()
+
+    # load local args
+    a = parse_args_cfg('zk_train0229test.args')
+    print(a)
+    opt = parser.parse_args(a)
+
     opt.save_json = opt.save_json or any([x in opt.data for x in ['coco.data', 'coco2014.data', 'coco2017.data']])
     print(opt)
 

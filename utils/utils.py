@@ -943,6 +943,45 @@ def plot_images(imgs, targets, paths=None, fname='images.png'):
     plt.close()
 
 
+def plot_pred(imgs, targets, paths=None, fname='images.png'):
+    # Plots training images overlaid with targets
+    imgs = imgs.cpu().numpy()
+    # targets = targets.cpu().numpy()
+    # targets = targets[targets[:, 1] == 21]  # plot only one class
+    # targets [torch, list] to numpy
+    # tar_list = []
+    # for target in targets:
+    #     target = list(target.cpu().numpy())
+    #     if target:
+    #         tar_list.extend(target)
+    #     else:
+    #         tar_list.extend([[]])
+    # targets = np.array(tar_list)
+
+    fig = plt.figure(figsize=(10, 10))
+    bs, _, h, w = imgs.shape  # batch size, _, height, width
+    bs = min(bs, 16)  # limit plot to 16 images
+    ns = np.ceil(bs ** 0.5)  # number of subplots
+
+    for i in range(bs):
+        plt.subplot(ns, ns, i + 1).imshow(imgs[i].transpose(1, 2, 0))
+        for box in targets[i]:
+            box = box.cpu().numpy()
+            if len(box) != 0 :
+                boxes = xywh2xyxy(box[:, 2:6]).T
+                boxes[[0, 2]] *= w
+                boxes[[1, 3]] *= h
+                plt.plot(boxes[[0, 2, 2, 0, 0]], boxes[[1, 1, 3, 3, 1]], '--')
+
+        plt.axis('off')
+        if paths is not None:
+            s = Path(paths[i]).name
+            plt.title(s[:min(len(s), 40)], fontdict={'size': 8})  # limit to 40 characters
+    fig.tight_layout()
+    fig.savefig(fname, dpi=200)
+    plt.close()
+
+
 def plot_test_txt():  # from utils.utils import *; plot_test()
     # Plot test.txt histograms
     x = np.loadtxt('test.txt', dtype=np.float32)
